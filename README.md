@@ -1,5 +1,3 @@
-
-
 ## 🚀 快速开始
 
 ### 环境要求
@@ -146,17 +144,14 @@ curl http://localhost:8080/health
 
 ### Docker部署（推荐使用 Compose）
 ```bash
-# 1. 进入部署目录
-cd 03-agent-build-docker-deploy
-
-# 2. 配置环境
+# 1. 配置环境
 cp backend/env.example backend/.env
 # 编辑.env文件
 
-# 3. 一键启动（Docker方式）
+# 2. 一键启动（Docker方式）
 docker-compose up -d
 
-# 4. 访问Web界面
+# 3. 访问Web界面
 # http://localhost:8501
 ```
 
@@ -207,3 +202,5 @@ MIT License
 
 
 **注意**: 本系统需要稳定的网络连接和有效的API密钥才能正常工作。首次使用请确保完成所有配置步骤。
+
+**注意**: 该项目改造自 https://github.com/FlyAIBox/Agent_In_Action/tree/main/03-agent-build-docker-deploy
