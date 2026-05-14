@@ -393,29 +393,99 @@ def inject_custom_css():
         letter-spacing: 0.01em;
     }
 
-    /* ========== 状态消息 ========== */
-    .stSuccess {
+    /* ========== 状态消息 — 统一暖色调 ========== */
+
+    /* 通用alert基础 */
+    .stAlert {
+        border: none !important;
+        border-radius: var(--radius-md) !important;
+        padding: 0.85rem 1.1rem !important;
+        font-family: var(--font-body) !important;
+        font-size: 0.88rem !important;
+        line-height: 1.6 !important;
+        box-shadow: none !important;
+    }
+
+    .stAlert p {
+        font-family: var(--font-body) !important;
+        font-size: 0.88rem !important;
+    }
+
+    /* 成功 — 橄榄绿调 */
+    .stSuccess,
+    div[data-testid="stNotification"] .stSuccess {
         background-color: rgba(90, 107, 74, 0.06) !important;
         border-left: 3px solid var(--color-olive) !important;
-        border-radius: var(--radius-sm) !important;
+        color: var(--color-text) !important;
     }
 
-    .stError {
+    .stSuccess svg {
+        color: var(--color-olive) !important;
+    }
+
+    /* 错误 — 赤陶色 */
+    .stError,
+    div[data-testid="stNotification"] .stError {
         background-color: rgba(196, 93, 62, 0.06) !important;
         border-left: 3px solid var(--color-accent) !important;
-        border-radius: var(--radius-sm) !important;
+        color: var(--color-text) !important;
     }
 
-    .stInfo {
-        background-color: var(--color-accent-light) !important;
-        border-left: 3px solid var(--color-accent) !important;
-        border-radius: var(--radius-sm) !important;
+    .stError svg {
+        color: var(--color-accent) !important;
+    }
+
+    /* 信息 — 暖灰调 */
+    .stInfo,
+    div[data-testid="stNotification"] .stInfo {
+        background-color: var(--color-warm-bg) !important;
+        border-left: 3px solid var(--color-border) !important;
+        color: var(--color-text-secondary) !important;
+    }
+
+    .stInfo svg {
+        color: var(--color-text-muted) !important;
+    }
+
+    /* 警告 — 柔和暖调 */
+    .stWarning,
+    div[data-testid="stNotification"] .stWarning {
+        background-color: rgba(196, 93, 62, 0.04) !important;
+        border-left: 3px solid rgba(196, 93, 62, 0.3) !important;
+        color: var(--color-text-secondary) !important;
+    }
+
+    .stWarning svg {
+        color: rgba(196, 93, 62, 0.5) !important;
     }
 
     /* ========== 进度条 ========== */
+    .stProgress {
+        margin: 0.75rem 0 !important;
+    }
+
+    .stProgress > div {
+        background: var(--color-border-light) !important;
+        border-radius: 100px !important;
+        height: 6px !important;
+    }
+
     .stProgress > div > div {
         background: var(--color-accent) !important;
-        border-radius: 100px;
+        border-radius: 100px !important;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .stProgress p {
+        font-family: var(--font-body) !important;
+        font-size: 0.78rem !important;
+        color: var(--color-text-muted) !important;
+        margin-top: 0.3rem !important;
+    }
+
+    /* ========== Spinner ========== */
+    .stSpinner > div {
+        border-color: var(--color-accent) transparent transparent transparent !important;
     }
 
     .stProgress > div {
@@ -1008,7 +1078,7 @@ def display_chat_interface():
 
                     if chat_response["can_proceed"] and chat_response.get("task_id"):
                         task_id = chat_response["task_id"]
-                        st.success(f"任务已创建 — ID: {task_id}")
+                        st.success(f"任务已创建　{task_id}")
 
                         st.session_state.current_task_id = task_id
                         st.session_state.planning_started = True
@@ -1380,7 +1450,12 @@ def main():
                 task_id = create_travel_plan(travel_data)
 
         if task_id:
-            st.success(f"规划任务已创建 — ID: {task_id}")
+            st.markdown(f"""
+            <div style="background: var(--color-warm-bg); border: 1px solid var(--color-border-light); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem;">
+                <span style="font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em;">任务已创建</span><br/>
+                <code style="font-size: 0.82rem; color: var(--color-text); background: none; padding: 0;">{task_id}</code>
+            </div>
+            """, unsafe_allow_html=True)
 
             progress_placeholder = st.empty()
             status_placeholder = st.empty()
@@ -1398,19 +1473,19 @@ def main():
                     message = status_info.get("message", "处理中...")
                     current_agent = status_info.get("current_agent", "")
 
-                    progress_placeholder.progress(progress / 100, text=f"进度: {progress}%")
+                    progress_placeholder.progress(progress / 100, text=f"{progress}%")
 
                     if current_agent:
-                        status_placeholder.info(f"当前智能体: {current_agent} | {message}")
+                        status_placeholder.info(f"{current_agent}　·　{message}")
                     else:
-                        status_placeholder.info(f"状态: {message}")
+                        status_placeholder.info(message)
 
                     if progress > last_progress:
                         last_progress = progress
                         attempt = 0
 
                     if status == "completed":
-                        progress_placeholder.progress(1.0, text="进度: 100% — 完成!")
+                        progress_placeholder.progress(1.0, text="100%")
                         status_placeholder.success("规划完成")
 
                         result = status_info.get("result")
@@ -1456,7 +1531,6 @@ def main():
                         error_msg = status_info.get("error", "未知错误")
                         progress_placeholder.empty()
                         status_placeholder.error(f"规划失败: {error_msg}")
-                        st.error("规划过程中出现错误，请重新尝试")
                         break
 
                     elif status in ["processing", "running", "pending"]:
@@ -1469,7 +1543,7 @@ def main():
                 else:
                     attempt += 1
                     if attempt < max_attempts:
-                        status_placeholder.warning(f"任务正在执行中... ({attempt}/{max_attempts})")
+                        status_placeholder.warning(f"处理中　·　{attempt}/{max_attempts}")
                         time.sleep(5)
                     else:
                         status_placeholder.error("无法获取任务状态")
