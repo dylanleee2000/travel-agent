@@ -91,9 +91,10 @@ def inject_custom_css():
     /* ========== 侧边栏 ========== */
     section[data-testid="stSidebar"] {
         background: var(--color-surface);
-        border-right: 1px solid var(--color-border);
+        border-right: 1px solid var(--color-border-light);
     }
 
+    /* 侧边栏所有文字 */
     section[data-testid="stSidebar"] .stMarkdown,
     section[data-testid="stSidebar"] .stMarkdown p,
     section[data-testid="stSidebar"] h1,
@@ -103,57 +104,133 @@ def inject_custom_css():
         text-shadow: none !important;
     }
 
-    section[data-testid="stSidebar"] label {
-        color: var(--color-text) !important;
-        font-size: 0.875rem !important;
+    /* Widget标签 — 统一颜色和大小 */
+    section[data-testid="stSidebar"] label p {
+        color: var(--color-text-secondary) !important;
+        font-size: 0.85rem !important;
         font-weight: 600 !important;
-        text-shadow: none !important;
-        line-height: 1.5;
-        letter-spacing: 0.02em;
+        font-family: var(--font-body) !important;
     }
 
+    /* 输入框值文字 — 统一字体和大小 */
     section[data-testid="stSidebar"] input,
-    section[data-testid="stSidebar"] select {
-        background-color: var(--color-bg) !important;
+    section[data-testid="stSidebar"] textarea {
+        background: transparent !important;
         color: var(--color-text) !important;
-        border: 1px solid var(--color-border) !important;
-        border-radius: var(--radius-sm) !important;
+        border: none !important;
+        border-bottom: 1px solid var(--color-border) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        font-family: var(--font-body) !important;
         font-size: 0.9rem !important;
-        padding: 0.6rem 0.8rem !important;
-        font-weight: 400;
-        font-family: var(--font-body);
     }
 
     section[data-testid="stSidebar"] input:focus,
-    section[data-testid="stSidebar"] select:focus {
-        border-color: var(--color-accent) !important;
-        box-shadow: 0 0 0 3px var(--color-accent-light) !important;
+    section[data-testid="stSidebar"] textarea:focus {
+        border-bottom-color: var(--color-accent) !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 
-    section[data-testid="stSidebar"] input[type="number"] {
+    /* 下拉选择框 — 底部线风格 + 统一字体 */
+    section[data-testid="stSidebar"] [data-baseweb="select"] {
+        border: none !important;
+        border-bottom: 1px solid var(--color-border) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        font-family: var(--font-body) !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="select"]:hover,
+    section[data-testid="stSidebar"] [data-baseweb="select"]:focus-within {
+        border-bottom-color: var(--color-accent) !important;
+    }
+
+    /* 下拉选项文字 */
+    section[data-testid="stSidebar"] [data-baseweb="select"] [class*="placeholder"],
+    section[data-testid="stSidebar"] [data-baseweb="select"] [class*="singleValue"],
+    section[data-testid="stSidebar"] [data-baseweb="select"] [class*="valueContainer"] {
+        font-family: var(--font-body) !important;
+        font-size: 0.9rem !important;
+        color: var(--color-text) !important;
+    }
+
+    /* 下拉弹出菜单 */
+    section[data-testid="stSidebar"] [data-baseweb="popover"] {
+        font-family: var(--font-body) !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="menu"] {
+        font-family: var(--font-body) !important;
+        border-radius: var(--radius-sm) !important;
+        border: 1px solid var(--color-border-light) !important;
+        box-shadow: var(--shadow-md) !important;
+        padding: 0.25rem !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="menu"] li {
+        font-family: var(--font-body) !important;
+        font-size: 0.85rem !important;
+        color: var(--color-text) !important;
+        border-radius: 4px !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="menu"] li:hover,
+    section[data-testid="stSidebar"] [data-baseweb="menu"] li[aria-selected="true"] {
+        background: var(--color-accent-light) !important;
+        color: var(--color-accent) !important;
+    }
+
+    /* 日期选择器 — 底部线风格 */
+    section[data-testid="stSidebar"] [data-testid="stDateInput"] > div {
+        border: none !important;
+        border-bottom: 1px solid var(--color-border) !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stDateInput"] input {
+        background: transparent !important;
+        border: none !important;
+        font-family: var(--font-body) !important;
         font-size: 0.9rem !important;
     }
 
-    section[data-testid="stSidebar"] select option {
-        font-size: 0.875rem !important;
+    /* 数字输入框 — 底部线风格 */
+    section[data-testid="stSidebar"] [data-testid="stNumberInput"] > div {
+        border: none !important;
+        border-bottom: 1px solid var(--color-border) !important;
+        border-radius: 0 !important;
+        background: transparent !important;
     }
 
-    section[data-testid="stSidebar"] .stCheckbox label {
-        font-size: 0.8rem !important;
-        text-shadow: none !important;
+    section[data-testid="stSidebar"] [data-testid="stNumberInput"] input {
+        background: transparent !important;
+        border: none !important;
+        font-family: var(--font-body) !important;
+        font-size: 0.9rem !important;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stNumberInput"] button {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 复选框文字 */
+    section[data-testid="stSidebar"] .stCheckbox label p {
         color: var(--color-text-secondary) !important;
+        font-size: 0.85rem !important;
+        font-family: var(--font-body) !important;
     }
 
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] div {
-        font-size: 0.875rem !important;
-    }
-
-    section[data-testid="stSidebar"] small {
-        font-size: 0.75rem !important;
-        text-shadow: none !important;
-        color: var(--color-text-muted) !important;
+    /* 侧边栏分隔线 */
+    section[data-testid="stSidebar"] hr {
+        border: none;
+        border-top: 1px solid var(--color-border-light);
+        margin: 0.75rem 0;
     }
 
     /* 侧边栏按钮 */
@@ -161,18 +238,22 @@ def inject_custom_css():
         background: var(--color-text) !important;
         color: var(--color-surface) !important;
         font-weight: 600;
-        font-size: 0.95rem !important;
-        padding: 0.75rem 1.5rem !important;
+        font-family: var(--font-body) !important;
         border-radius: var(--radius-sm) !important;
-        letter-spacing: 0.03em;
         border: none !important;
         transition: var(--transition);
+        width: 100%;
     }
 
     section[data-testid="stSidebar"] .stButton > button:hover {
         background: var(--color-accent) !important;
         transform: translateY(-1px);
         box-shadow: var(--shadow-sm);
+    }
+
+    /* 侧边栏列间距 */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
+        gap: 0.5rem !important;
     }
 
     /* ========== 标题排版 ========== */
@@ -1119,7 +1200,9 @@ def main():
         # 团队信息
         group_size = st.number_input("团队人数", min_value=1, max_value=20, value=2)
 
-        # 预算范围
+        st.markdown("<hr/>", unsafe_allow_html=True)
+
+        # 偏好设置
         budget_range = st.selectbox("预算范围", [
             "经济型 (300-800元/天)",
             "舒适型 (800-1500元/天)",
@@ -1128,7 +1211,6 @@ def main():
             "奢华体验 (6000元以上/天)"
         ])
 
-        # 住宿偏好
         accommodation = st.selectbox("住宿偏好", [
             "经济型酒店/青旅",
             "商务酒店",
@@ -1138,7 +1220,6 @@ def main():
             "奢华酒店"
         ])
 
-        # 交通偏好
         transportation = st.selectbox("交通偏好", [
             "公共交通为主",
             "混合交通方式",
@@ -1147,11 +1228,13 @@ def main():
             "高铁/飞机"
         ])
 
-        # 兴趣爱好
-        st.markdown('<p style="font-size: 0.8rem; font-weight: 600; color: var(--color-text); margin: 1rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.06em;">兴趣爱好</p>', unsafe_allow_html=True)
+        st.markdown("<hr/>", unsafe_allow_html=True)
+
+        # 旅游偏好 — 两列布局，更宽松
+        st.markdown('<p style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-secondary); margin: 0 0 0.4rem 0;">旅游偏好</p>', unsafe_allow_html=True)
         interests = []
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
             if st.checkbox("历史文化"):
                 interests.append("历史文化")
@@ -1163,20 +1246,18 @@ def main():
                 interests.append("艺术表演")
             if st.checkbox("海滨度假"):
                 interests.append("海滨度假")
-
-        with col2:
             if st.checkbox("购物娱乐"):
                 interests.append("购物娱乐")
             if st.checkbox("运动健身"):
                 interests.append("运动健身")
             if st.checkbox("摄影打卡"):
                 interests.append("摄影打卡")
+
+        with col2:
             if st.checkbox("休闲放松"):
                 interests.append("休闲放松")
             if st.checkbox("主题乐园"):
                 interests.append("主题乐园")
-
-        with col3:
             if st.checkbox("登山徒步"):
                 interests.append("登山徒步")
             if st.checkbox("文艺创作"):
@@ -1187,6 +1268,8 @@ def main():
                 interests.append("博物馆")
             if st.checkbox("夜生活"):
                 interests.append("夜生活")
+
+        st.markdown("<br/>", unsafe_allow_html=True)
 
         # 提交按钮
         if st.button("开始规划", type="primary", use_container_width=True):
