@@ -1355,14 +1355,14 @@ def main():
                     "group_size": group_size,
                     "budget_range": budget_range,
                     "interests": interests,
-                    "accommodation": accommodation,
-                    "transportation": transportation,
-                    "duration": (end_date - start_date).days,
-                    "travel_dates": f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
+                    "accommodation_preference": accommodation,
+                    "transportation_preference": transportation,
+                    "currency": "CNY"
                 }
 
                 st.session_state.travel_data = travel_data
                 st.session_state.planning_started = True
+                st.rerun()
 
     # 手动查询结果功能
     with st.expander("手动查询任务结果", expanded=False):
