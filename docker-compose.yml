@@ -13,8 +13,11 @@ services:
     # 建议路径：./backend/.env（复制自 backend/env.example 并填写实际值）
     env_file:
       - ./backend/.env
+    environment:
+      - TZ=Asia/Shanghai
     volumes:
       - ./results:/app/results
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - travel-network
     restart: unless-stopped
@@ -36,8 +39,10 @@ services:
       # 注意：容器内不要使用 http://localhost:8080 访问后端
       # 前端应通过 Compose 内部服务名访问后端：http://backend:8080
       - API_BASE_URL=http://backend:8080
+      - TZ=Asia/Shanghai
     volumes:
       - ./frontend:/app
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       - backend
     networks:
