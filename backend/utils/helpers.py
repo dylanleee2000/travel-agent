@@ -16,6 +16,75 @@
 from datetime import datetime, date
 from typing import Dict, Any, Tuple, List
 import re
+import sys
+import logging
+from pathlib import Path
+
+
+# --------------------------- 统一日志配置 ---------------------------
+# 全局统一格式，所有模块共享
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+LOG_DIR = Path('logs')
+LOG_FILE = LOG_DIR / 'backend.log'
+
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    获取统一配置的日志记录器
+
+    所有模块通过此函数获取 logger，保证：
+    - 统一的日志格式（含时间戳）
+    - 同时输出到文件和控制台（Docker logs 可见）
+    - 不会重复添加 handler
+
+    参数：
+    - name: logger 名称，通常使用模块名，如 'api_server'、'langgraph_agents'
+
+    返回：配置好的 Logger 对象
+
+    使用示例：
+        from utils.helpers import get_logger
+        logger = get_logger('my_module')
+        logger.info('这条日志同时写入文件和控制台')
+    """
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+
+    if not logger.handlers:
+        # 确保日志目录存在
+        LOG_DIR.mkdir(exist_ok=True)
+
+        formatter = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
+
+        # 文件handler：持久化到日志文件
+        fh = logging.FileHandler(str(LOG_FILE), encoding='utf-8')
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+        # 控制台handler：输出到stdout，Docker logs可捕获
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
+    return logger
+
+
+def setup_uvicorn_logging():
+    """
+    统一配置Uvicorn日志格式，使其与业务日志保持一致（带时间戳）
+
+    应在 api_server.py 启动前调用一次。
+    """
+    formatter = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
+    for logger_name in ['uvicorn', 'uvicorn.access', 'uvicorn.error']:
+        uv_logger = logging.getLogger(logger_name)
+        uv_logger.handlers.clear()
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
+        uv_logger.addHandler(handler)
 
 def validate_email(email: str) -> bool:
     """

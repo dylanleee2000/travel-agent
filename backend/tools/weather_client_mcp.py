@@ -22,42 +22,16 @@ import aiohttp
 import json
 from typing import Optional, Dict, Any, List
 from contextlib import AsyncExitStack
-from pathlib import Path
 
 from openai import OpenAI
 from dotenv import load_dotenv
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from utils.helpers import get_logger
 
-# 配置详细日志记录器
-def setup_weather_client_logger():
-    """设置天气客户端日志记录器"""
-    logger = logging.getLogger('weather_client')
-    logger.setLevel(logging.INFO)
-    
-    if not logger.handlers:
-        # 确保日志目录存在
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        
-        # 创建文件处理器
-        file_handler = logging.FileHandler('logs/backend.log', encoding='utf-8')
-        file_handler.setLevel(logging.INFO)
-        
-        # 设置详细日志格式
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        file_handler.setFormatter(formatter)
-        
-        logger.addHandler(file_handler)
-    
-    return logger
-
-# 创建全局日志记录器
-logger = setup_weather_client_logger()
+# --------------------------- 日志配置 ---------------------------
+logger = get_logger('weather_client')
 
 load_dotenv()
 

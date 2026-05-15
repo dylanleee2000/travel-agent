@@ -18,8 +18,6 @@ LangGraph旅行规划智能体系统
 """
 
 from typing import Dict, Any, List, Optional, TypedDict, Annotated
-import logging
-from pathlib import Path
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
@@ -33,23 +31,10 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.langgraph_config import langgraph_config as config
+from utils.helpers import get_logger
 
 # --------------------------- 日志配置 ---------------------------
-def setup_agents_logger():
-    logger = logging.getLogger('langgraph_agents')
-    logger.setLevel(logging.INFO)
-    if not logger.handlers:
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        fh = logging.FileHandler('logs/backend.log', encoding='utf-8')
-        fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-    return logger
-
-agents_logger = setup_agents_logger()
+agents_logger = get_logger('langgraph_agents')
 
 # 定义多智能体系统的状态结构
 class TravelPlanState(TypedDict):

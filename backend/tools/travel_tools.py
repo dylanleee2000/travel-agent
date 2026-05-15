@@ -19,42 +19,16 @@ LangGraph智能体工具集
 import asyncio
 import logging
 from typing import List, Dict, Any, Optional
-from pathlib import Path
 from langchain_core.tools import tool
 from duckduckgo_search import DDGS
 import json
 import re
 from datetime import datetime
 from .weather_client_mcp import fetch_forecast_via_mcp
+from utils.helpers import get_logger
 
-# 配置详细日志记录器
-def setup_travel_logger():
-    """设置日志记录器"""
-    logger = logging.getLogger('travel_tools')
-    logger.setLevel(logging.INFO)
-    
-    if not logger.handlers:
-        # 确保日志目录存在
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        
-        # 创建文件处理器
-        file_handler = logging.FileHandler('logs/backend.log', encoding='utf-8')
-        file_handler.setLevel(logging.INFO)
-        
-        # 设置详细日志格式
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        file_handler.setFormatter(formatter)
-        
-        logger.addHandler(file_handler)
-    
-    return logger
-
-# 创建全局日志记录器
-travel_logger = setup_travel_logger()
+# --------------------------- 日志配置 ---------------------------
+travel_logger = get_logger('travel_tools')
 
 # 直接定义工具函数，不使用类包装
 @tool

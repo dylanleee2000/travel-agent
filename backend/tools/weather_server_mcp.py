@@ -21,8 +21,6 @@ Date: 2025.10.11
 """
 
 from typing import Any, Dict, List, Optional, Union
-import logging
-from pathlib import Path
 import asyncio
 import httpx
 import os
@@ -31,27 +29,14 @@ from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from pathlib import Path
 from pypinyin import lazy_pinyin, Style
+from utils.helpers import get_logger
 
 # 加载 .env 文件中的环境变量
 dotenv_path = Path(__file__).resolve().parents[1] / '.env'
 load_dotenv(dotenv_path)
 
-# 初始化日志
-def setup_weather_server_logger():
-    ws_logger = logging.getLogger('weather_server')
-    ws_logger.setLevel(logging.INFO)
-    if not ws_logger.handlers:
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        fh = logging.FileHandler('logs/backend.log', encoding='utf-8')
-        fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
-        fh.setFormatter(formatter)
-        ws_logger.addHandler(fh)
-    return ws_logger
-
-ws_logger = setup_weather_server_logger()
+# --------------------------- 日志配置 ---------------------------
+ws_logger = get_logger('weather_server')
 
 # 初始化 FastMCP 服务器
 mcp = FastMCP("weather",  # 服务器名称
