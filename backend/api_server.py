@@ -41,15 +41,30 @@ def setup_api_logger():
     if not logger.handlers:
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
-        fh = logging.FileHandler('logs/backend.log', encoding='utf-8')
-        fh.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                                       datefmt='%Y-%m-%d %H:%M:%S')
+        # 文件handler：持久化到日志文件
+        fh = logging.FileHandler('logs/backend.log', encoding='utf-8')
+        fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
+        # 控制台handler：输出到stdout，Docker logs可捕获
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
     return logger
 
 api_logger = setup_api_logger()
+
+# 配置Uvicorn日志格式，使其与api_server保持一致（带时间戳）
+uvicorn_logger = logging.getLogger('uvicorn')
+uvicorn_logger.handlers.clear()
+uvicorn_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                                     datefmt='%Y-%m-%d %H:%M:%S')
+uvicorn_handler = logging.StreamHandler(sys.stdout)
+uvicorn_handler.setFormatter(uvicorn_formatter)
+uvicorn_logger.addHandler(uvicorn_handler)
 
 # --------------------------- 应用初始化与全局配置 ---------------------------
 # 创建FastAPI应用，定义对外暴露的基础信息（标题、描述、版本等）
