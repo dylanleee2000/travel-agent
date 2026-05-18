@@ -43,7 +43,7 @@ _ws_logger = logging.getLogger('weather_server')
 _ws_logger.setLevel(logging.INFO)
 if not _ws_logger.handlers:
     _fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    _handler = logging.StreamHandler(sys.stdout)
+    _handler = logging.StreamHandler(sys.stderr)
     _handler.setFormatter(logging.Formatter(_fmt, datefmt='%Y-%m-%d %H:%M:%S'))
     _ws_logger.addHandler(_handler)
 ws_logger = _ws_logger
@@ -77,7 +77,7 @@ def _normalize_base_url(raw_base: Optional[str]) -> str:
 try:
     _QWEATHER_BASE_URL = _normalize_base_url(QWEATHER_API_BASE)
 except RuntimeError as err:
-    print(f"[配置错误] {err}")
+    ws_logger.error(f"[配置错误] {err}")
     _QWEATHER_BASE_URL = None
 
 async def make_qweather_request(endpoint: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
