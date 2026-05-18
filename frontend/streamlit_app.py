@@ -459,38 +459,167 @@ def inject_custom_css():
         color: rgba(196, 93, 62, 0.5) !important;
     }
 
-    /* ========== 进度条 ========== */
-    .stProgress {
-        margin: 0.75rem 0 !important;
+    /* ========== 自定义进度组件 ========== */
+    .travel-progress-card {
+        background: var(--color-warm-bg);
+        border: 1px solid var(--color-border-light);
+        border-radius: var(--radius-md);
+        padding: 1.5rem 1.75rem;
+        margin: 1rem 0;
     }
 
-    .stProgress > div {
-        background: var(--color-border-light) !important;
-        border-radius: 100px !important;
-        height: 6px !important;
+    .tp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
     }
 
-    .stProgress > div > div {
-        background: var(--color-accent) !important;
-        border-radius: 100px !important;
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    .tp-label {
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        letter-spacing: 0.08em;
     }
 
-    .stProgress p {
-        font-family: var(--font-body) !important;
-        font-size: 0.78rem !important;
-        color: var(--color-text-muted) !important;
-        margin-top: 0.3rem !important;
+    .tp-percent {
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--color-accent);
+    }
+
+    .tp-track {
+        background: var(--color-border-light);
+        border-radius: 100px;
+        height: 5px;
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+    }
+
+    .tp-fill {
+        height: 100%;
+        border-radius: 100px;
+        background: linear-gradient(90deg, #c45d3e 0%, #d4836e 100%);
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tp-fill.tp-pulse {
+        animation: tp-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes tp-glow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .tp-steps {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        padding: 0 0.25rem;
+    }
+
+    .tp-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .tp-step-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--color-border);
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+
+    .tp-step.tp-done .tp-step-dot {
+        background: var(--color-olive);
+    }
+
+    .tp-step.tp-active .tp-step-dot {
+        background: var(--color-accent);
+        box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.15);
+        animation: tp-dot-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes tp-dot-pulse {
+        0%, 100% { box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.15); }
+        50% { box-shadow: 0 0 0 6px rgba(196, 93, 62, 0.06); }
+    }
+
+    .tp-step-label {
+        font-family: var(--font-body);
+        font-size: 0.65rem;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+
+    .tp-step.tp-done .tp-step-label {
+        color: var(--color-olive);
+    }
+
+    .tp-step.tp-active .tp-step-label {
+        color: var(--color-accent);
+        font-weight: 500;
+    }
+
+    .tp-connector {
+        flex: 1;
+        height: 1px;
+        background: var(--color-border);
+        margin: 0 -0.25rem;
+        margin-bottom: 1.2rem;
+        transition: background 0.5s ease;
+    }
+
+    .tp-connector.tp-done {
+        background: var(--color-olive);
+    }
+
+    .tp-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tp-status-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        animation: tp-dot-blink 1.5s ease-in-out infinite;
+        flex-shrink: 0;
+    }
+
+    @keyframes tp-dot-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .tp-status-text {
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        color: var(--color-text-secondary);
+        transition: opacity 0.3s ease;
+    }
+
+    .tp-done-check {
+        color: var(--color-olive);
+        font-size: 0.75rem;
     }
 
     /* ========== Spinner ========== */
     .stSpinner > div {
         border-color: var(--color-accent) transparent transparent transparent !important;
-    }
-
-    .stProgress > div {
-        background: var(--color-border-light) !important;
-        border-radius: 100px;
     }
 
     /* ========== 输入框 ========== */
@@ -997,6 +1126,51 @@ def save_report_to_results(content: str, filename: str) -> str:
         return None
 
 
+def build_travel_progress_html(percent: int, message: str, agent: str = "", done: bool = False):
+    """构建暖色调旅行规划进度组件 HTML"""
+    steps = [
+        {"label": "初始化", "threshold": 10},
+        {"label": "启动系统", "threshold": 30},
+        {"label": "智能分析", "threshold": 50},
+        {"label": "多智能体协作", "threshold": 60},
+        {"label": "完成", "threshold": 100},
+    ]
+
+    def step_class(threshold):
+        if percent >= threshold:
+            return "tp-step tp-done"
+        if percent >= threshold * 0.5:
+            return "tp-step tp-active"
+        return "tp-step"
+
+    dots_html = ""
+    for i, s in enumerate(steps):
+        dots_html += f'<div class="{step_class(s["threshold"])}"><div class="tp-step-dot"></div><span class="tp-step-label">{s["label"]}</span></div>'
+        if i < len(steps) - 1:
+            conn_class = "tp-connector tp-done" if percent >= steps[i + 1]["threshold"] else "tp-connector"
+            dots_html += f'<div class="{conn_class}"></div>'
+
+    if done:
+        status_html = '<div class="tp-status"><span class="tp-done-check">&#10003;</span><span class="tp-status-text">规划完成</span></div>'
+        fill_class = "tp-fill"
+    else:
+        status_text = f"{agent}　·　{message}" if agent else message
+        status_html = f'<div class="tp-status"><div class="tp-status-dot"></div><span class="tp-status-text">{status_text}</span></div>'
+        fill_class = "tp-fill tp-pulse"
+
+    return f"""
+    <div class="travel-progress-card">
+        <div class="tp-header">
+            <span class="tp-label">AI 智能规划中</span>
+            <span class="tp-percent">{percent}%</span>
+        </div>
+        <div class="tp-track"><div class="{fill_class}" style="width: {percent}%"></div></div>
+        <div class="tp-steps">{dots_html}</div>
+        {status_html}
+    </div>
+    """
+
+
 def display_hero_section():
     """显示Hero区域"""
     st.markdown("""
@@ -1458,7 +1632,6 @@ def main():
             """, unsafe_allow_html=True)
 
             progress_placeholder = st.empty()
-            status_placeholder = st.empty()
 
             max_attempts = 60
             attempt = 0
@@ -1473,20 +1646,20 @@ def main():
                     message = status_info.get("message", "处理中...")
                     current_agent = status_info.get("current_agent", "")
 
-                    progress_placeholder.progress(progress / 100, text=f"{progress}%")
-
-                    if current_agent:
-                        status_placeholder.info(f"{current_agent}　·　{message}")
-                    else:
-                        status_placeholder.info(message)
+                    progress_placeholder.markdown(
+                        build_travel_progress_html(progress, message, current_agent),
+                        unsafe_allow_html=True,
+                    )
 
                     if progress > last_progress:
                         last_progress = progress
                         attempt = 0
 
                     if status == "completed":
-                        progress_placeholder.progress(1.0, text="100%")
-                        status_placeholder.success("规划完成")
+                        progress_placeholder.markdown(
+                            build_travel_progress_html(100, "规划完成", done=True),
+                            unsafe_allow_html=True,
+                        )
 
                         result = status_info.get("result")
                         if result:
@@ -1530,7 +1703,7 @@ def main():
                     elif status == "failed":
                         error_msg = status_info.get("error", "未知错误")
                         progress_placeholder.empty()
-                        status_placeholder.error(f"规划失败: {error_msg}")
+                        st.error(f"规划失败: {error_msg}")
                         break
 
                     elif status in ["processing", "running", "pending"]:
@@ -1543,15 +1716,18 @@ def main():
                 else:
                     attempt += 1
                     if attempt < max_attempts:
-                        status_placeholder.warning(f"处理中　·　{attempt}/{max_attempts}")
+                        progress_placeholder.markdown(
+                            build_travel_progress_html(0, f"处理中　·　{attempt}/{max_attempts}"),
+                            unsafe_allow_html=True,
+                        )
                         time.sleep(5)
                     else:
-                        status_placeholder.error("无法获取任务状态")
+                        st.error("无法获取任务状态")
                         break
 
             if attempt >= max_attempts:
                 progress_placeholder.empty()
-                status_placeholder.warning("规划超时，后端可能仍在处理中")
+                st.warning("规划超时，后端可能仍在处理中")
                 st.info("你可以稍后刷新页面查看结果，或重新提交规划请求")
         else:
             st.error("创建规划任务失败")
