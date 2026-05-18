@@ -23,20 +23,30 @@ Date: 2025.10.11
 from typing import Any, Dict, List, Optional, Union
 import asyncio
 import httpx
+import logging
 import os
+import sys
 from urllib.parse import urljoin
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from pathlib import Path
 from pypinyin import lazy_pinyin, Style
-from utils.helpers import get_logger
 
 # 加载 .env 文件中的环境变量
 dotenv_path = Path(__file__).resolve().parents[1] / '.env'
 load_dotenv(dotenv_path)
 
 # --------------------------- 日志配置 ---------------------------
-ws_logger = get_logger('weather_server')
+# 独立 MCP 服务器进程，直接使用标准 logging 而非 utils.helpers.get_logger
+# 避免子进程找不到项目内模块导致 ModuleNotFoundError
+_ws_logger = logging.getLogger('weather_server')
+_ws_logger.setLevel(logging.INFO)
+if not _ws_logger.handlers:
+    _fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    _handler = logging.StreamHandler(sys.stdout)
+    _handler.setFormatter(logging.Formatter(_fmt, datefmt='%Y-%m-%d %H:%M:%S'))
+    _ws_logger.addHandler(_handler)
+ws_logger = _ws_logger
 
 # 初始化 FastMCP 服务器
 mcp = FastMCP("weather",  # 服务器名称
