@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Skill(frontend-design)"
+      "Skill(frontend-design)",
+      "Bash(curl -sk -H \"X-QW-Api-Key: 3b68e3cbce664f9291bcd8048a8fa0e8\" \"https://devapi.qweather.com/geo/v2/city/lookup?location=wuhan&lang=zh\")"
     ]
   }
 }

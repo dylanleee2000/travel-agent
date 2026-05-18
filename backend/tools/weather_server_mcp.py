@@ -26,7 +26,16 @@ import httpx
 import logging
 import os
 import sys
+import warnings
 from urllib.parse import urljoin
+
+# 跳过自签名证书环境下的 SSL 警告
+try:
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except ImportError:
+    pass
+warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from pathlib import Path
@@ -107,7 +116,7 @@ async def make_qweather_request(endpoint: str, params: Dict[str, Any]) -> Option
         "X-QW-Api-Key": QWEATHER_API_KEY
     }
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=False) as client:
         try:
             ws_logger.info(f"QWeather请求: url={url}, params={params}")
             response = await client.get(url, params=params, headers=headers, timeout=30.0)
