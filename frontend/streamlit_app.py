@@ -22,7 +22,7 @@ import pandas as pd
 
 # 页面配置
 st.set_page_config(
-    page_title="旅小智 — 智能旅行规划",
+    page_title="马小跳 — 智能旅行规划",
     page_icon="✦",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -1173,7 +1173,7 @@ def display_hero_section():
     st.markdown("""
     <div class="hero-section">
         <div class="hero-badge">AI Multi-Agent System</div>
-        <h1 class="hero-title">旅小智</h1>
+        <h1 class="hero-title">马小跳</h1>
         <p class="hero-subtitle">
             六位专业 AI 智能体协同工作，<br/>
             为您量身定制完美旅程
@@ -1187,7 +1187,7 @@ def display_chat_interface():
     st.markdown("""
     <div class="section-header">
         <h2>描述你的旅行想法</h2>
-        <p>用自然语言告诉旅小智你的需求，AI会自动为你规划</p>
+        <p>用自然语言告诉马小跳你的需求，AI会自动为你规划</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1244,7 +1244,7 @@ def display_chat_interface():
                 if response.status_code == 200:
                     chat_response = response.json()
 
-                    st.markdown("#### 旅小智回复")
+                    st.markdown("#### 马小跳回复")
                     st.info(chat_response["clarification"])
 
                     if chat_response["can_proceed"] and chat_response.get("task_id"):
@@ -1277,7 +1277,7 @@ def display_features_section():
     """显示功能特色区域"""
     st.markdown("""
     <div class="section-header">
-        <h2>为什么选择旅小智</h2>
+        <h2>为什么选择马小跳</h2>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1348,7 +1348,7 @@ def display_footer():
     st.markdown("""
     <div class="footer">
         <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 0.5rem; font-family: var(--font-display);">
-            旅小智
+            马小跳
         </p>
         <p>
             LangGraph 多智能体系统驱动 · FastAPI + Streamlit
@@ -1423,7 +1423,7 @@ def main():
     with st.sidebar:
         st.markdown("""
         <div class="sidebar-brand">
-            <div class="sidebar-brand-title">旅小智</div>
+            <div class="sidebar-brand-title">马小跳</div>
             <div class="sidebar-brand-sub">Travel Smart Agent</div>
         </div>
         """, unsafe_allow_html=True)

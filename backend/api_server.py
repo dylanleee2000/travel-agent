@@ -42,8 +42,8 @@ setup_uvicorn_logging()
 # --------------------------- 应用初始化与全局配置 ---------------------------
 # 创建FastAPI应用，定义对外暴露的基础信息（标题、描述、版本等）
 app = FastAPI(
-    title="旅小智 - AI旅行规划智能体API",
-    description="🤖 旅小智：您的智能旅行规划助手 ",
+    title="马小跳 - AI旅行规划智能体API",
+    description="🤖 马小跳：您的智能旅行规划助手 ",
     version="2.0.0"
 )
 
@@ -164,9 +164,9 @@ class ChatResponse(BaseModel):
 async def root():
     """根路径，返回API信息"""
     return {
-        "name": "旅小智",
+        "name": "马小跳",
         "slogan": "您的智能旅行规划助手",
-        "message": "🤖 旅小智 - AI旅行规划智能体API",
+        "message": "🤖 马小跳 - AI旅行规划智能体API",
         "version": "2.0.0",
         "status": "运行中",
         "features": [
@@ -717,7 +717,7 @@ async def mock_travel_plan(request: TravelRequest):
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
     """
-    自然语言交互接口 - 旅小智智能对话
+    自然语言交互接口 - 马小跳智能对话
     
     支持用户使用自然语言描述旅行需求，AI 自动提取关键信息并创建规划任务。
     
@@ -739,7 +739,7 @@ async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
         llm = ChatOpenAI(**llm_config)
         
         # 构造提示词
-        system_prompt = """你是"旅小智"，一个专业的AI旅行规划助手。
+        system_prompt = """你是"马小跳"，一个专业的AI旅行规划助手。
 你的任务是从用户的自然语言描述中提取旅行规划的关键信息。
 
 请从用户输入中提取以下信息（如果有的话）：
@@ -846,8 +846,8 @@ async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
                     "task_id": task_id,
                     "status": "started",
                     "progress": 0,
-                    "current_agent": "旅小智",
-                    "message": f"旅小智正在为您规划{travel_data['destination']}之旅...",
+                    "current_agent": "马小跳",
+                    "message": f"马小跳正在为您规划{travel_data['destination']}之旅...",
                     "created_at": datetime.now().isoformat(),
                     "request": travel_data,
                     "result": None,
@@ -868,7 +868,7 @@ async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
         
         # 生成友好的反馈
         if can_proceed and task_id:
-            clarification_response = f"✅ 好的！旅小智已经理解您的需求，正在为您规划{extracted.get('destination', '')}之旅！\n\n📋 规划信息：\n"
+            clarification_response = f"✅ 好的！马小跳已经理解您的需求，正在为您规划{extracted.get('destination', '')}之旅！\n\n📋 规划信息：\n"
             if "destination" in extracted:
                 clarification_response += f"📍 目的地：{extracted['destination']}\n"
             if "start_date" in extracted or "end_date" in extracted:
@@ -885,7 +885,7 @@ async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
             clarification_response += "\n🤖 AI智能体团队正在为您工作，请稍候..."
         else:
             if not has_destination:
-                clarification_response = "😊 您好！我是旅小智。请告诉我您想去哪里旅行？"
+                clarification_response = "😊 您好！我是马小跳。请告诉我您想去哪里旅行？"
             elif not has_time_info:
                 clarification_response = f"好的！您想去{extracted.get('destination', '')}旅行。\n\n请问您计划什么时候出发？大概玩几天呢？"
             else:
@@ -909,7 +909,7 @@ async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
             understood=False,
             extracted_info={},
             missing_info=["所有信息"],
-            clarification="抱歉，旅小智遇到了一点小问题。能否请您重新描述一下您的旅行需求？",
+            clarification="抱歉，马小跳遇到了一点小问题。能否请您重新描述一下您的旅行需求？",
             can_proceed=False
         )
 
