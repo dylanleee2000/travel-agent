@@ -985,10 +985,10 @@ def create_travel_plan(travel_data: Dict[str, Any]) -> Optional[str]:
 
 def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
     """获取规划状态"""
-    max_retries = 2
+    max_retries = 3
     for retry in range(max_retries):
         try:
-            response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=30)
+            response = requests.get(f"{API_BASE_URL}/status/{task_id}", timeout=60)
             if response.status_code == 200:
                 return response.json()
             elif response.status_code == 404:
@@ -996,7 +996,6 @@ def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
                 return None
             else:
                 if retry < max_retries - 1:
-                    st.warning(f"获取状态失败: HTTP {response.status_code}，正在重试...")
                     time.sleep(3)
                 else:
                     st.error(f"获取状态失败: HTTP {response.status_code}")
@@ -1005,14 +1004,12 @@ def get_planning_status(task_id: str) -> Optional[Dict[str, Any]]:
             if retry < max_retries - 1:
                 time.sleep(3)
             else:
-                st.warning("后端正在处理中，请稍后手动刷新页面查看结果")
                 return None
         except requests.exceptions.ConnectionError:
             st.error("无法连接到后端服务，请确保后端服务已启动")
             return None
         except Exception as e:
             if retry < max_retries - 1:
-                st.warning(f"请求失败，正在重试 ({retry + 1}/{max_retries}): {str(e)}")
                 time.sleep(3)
             else:
                 st.error(f"获取状态失败: {str(e)}")
