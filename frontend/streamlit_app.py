@@ -1617,8 +1617,46 @@ def main():
         else:
             travel_data = st.session_state.travel_data
 
-            st.markdown("#### 规划请求")
-            st.json(travel_data)
+            # 构建出行需求卡片
+            fields = [
+                ("目的地", travel_data.get("destination", "—")),
+                ("出发日期", travel_data.get("start_date", "—")),
+                ("返回日期", travel_data.get("end_date", "—")),
+                ("出行人数", str(travel_data.get("group_size", "—")) + " 人"),
+                ("预算范围", travel_data.get("budget_range", "—")),
+            ]
+
+            row_style = 'style="display:flex; justify-content:space-between; padding: 0.55rem 0; border-bottom: 1px solid #f0ebe5;"'
+            label_style = 'style="font-size: 0.8rem; color: #9e9893;"'
+            value_style = 'style="font-size: 0.8rem; color: #1a1a1a; font-weight: 500;"'
+            rows_html = "".join(
+                f'<div {row_style}><span {label_style}>{lb}</span><span {value_style}>{vl}</span></div>'
+                for lb, vl in fields
+            )
+
+            interests = travel_data.get("interests", [])
+            if interests:
+                if isinstance(interests, str):
+                    interests = [interests]
+                tag_style = 'style="display:inline-block; background: rgba(196,93,62,0.08); color: #c45d3e; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 100px; margin: 0.15rem;"'
+                tags_html = " ".join(f'<span {tag_style}>{t}</span>' for t in interests)
+                rows_html += (
+                    f'<div style="padding: 0.55rem 0;">'
+                    f'<span style="font-size: 0.8rem; color: #9e9893; display:block; margin-bottom: 0.35rem;">兴趣偏好</span>'
+                    f'<div style="display:flex; flex-wrap:wrap; gap: 0.3rem;">{tags_html}</div>'
+                    f'</div>'
+                )
+
+            card_html = (
+                '<div style="background: #f5f0ea; border: 1px solid #f0ebe5; border-radius: 12px; '
+                'padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;">'
+                '<div style="font-family: \'Noto Serif SC\', serif; font-size: 0.82rem; font-weight: 600; '
+                'color: #6b6560; letter-spacing: 0.06em; margin-bottom: 0.75rem;">出行需求</div>'
+                f'{rows_html}'
+                '</div>'
+            )
+
+            st.markdown(card_html, unsafe_allow_html=True)
 
             with st.spinner("正在创建规划任务..."):
                 task_id = create_travel_plan(travel_data)
