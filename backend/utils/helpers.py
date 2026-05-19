@@ -23,7 +23,7 @@ from pathlib import Path
 
 # --------------------------- 统一日志配置 ---------------------------
 # 全局统一格式，所有模块共享
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+LOG_FORMAT = '%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 LOG_DIR = Path('logs')
 LOG_FILE = LOG_DIR / 'backend.log'
