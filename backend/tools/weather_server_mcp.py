@@ -434,10 +434,5 @@ async def lookup_city_id_by_pinyin(pinyin: str) -> str:
         return f"{result}"
 
 if __name__ == "__main__":
-    ws_logger.info("正在启动 MCP 天气服务器…")
-    ws_logger.info("提供工具: get_weather_warning, get_daily_forecast")
-    ws_logger.info("请确保环境变量 QWEATHER_API_KEY 已设置")
-    ws_logger.info("使用 Ctrl+C 停止服务器")
-    
     # 初始化并运行服务器
     mcp.run(transport='stdio') 

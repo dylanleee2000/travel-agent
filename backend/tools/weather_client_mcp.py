@@ -145,7 +145,6 @@ class MCPServer:
                     ClientSession(stdio, write)
                 )
                 await self.session.initialize()
-                logger.info("成功连接到 MCP 服务器")
                 break
                 
             except Exception as e:
@@ -244,7 +243,6 @@ class MCPWeatherClient:
     async def connect(self) -> None:
         """建立到本地 MCP 天气服务器的连接。"""
         server_path = _resolve_mcp_server_path()
-        logger.info(f"准备连接 MCP 天气服务器: {server_path}")
         self.server = MCPServer(server_path)
         await self.server.initialize()
 
@@ -317,7 +315,6 @@ async def fetch_forecast_via_mcp(location: str, days: int = 3) -> str:
     logger.info(f"通过 MCP 工具获取天气预报: 位置={location}, 天数={days}")
     try:
         async with MCPWeatherClient() as client:
-            logger.info("MCPWeatherClient 上下文已建立，开始请求预报…")
             result = await client.get_daily_forecast(location=location, days=days)
             logger.info("MCP 工具调用成功，已获得返回结果")
             return result
