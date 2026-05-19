@@ -287,45 +287,44 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
                 planning_tasks[task_id]["message"] = "初始化AI旅行规划智能体..."
 
                 try:
-                    travel_agents = LangGraphTravelAgents()
+                    # 定义进度回调：每完成一个智能体就更新 planning_tasks
+                    def on_agent_progress(agent_name: str, progress: int, message: str):
+                        """智能体进度回调，更新 planning_tasks 让前端实时可见"""
+                        planning_tasks[task_id]["progress"] = progress
+                        planning_tasks[task_id]["message"] = message
+                        api_logger.info(f"任务 {task_id}: [{agent_name}] 进度 {progress}% - {message}")
+
+                    travel_agents = LangGraphTravelAgents(progress_callback=on_agent_progress)
                     api_logger.info(f"任务 {task_id}: AI旅行规划智能体初始化完成")
 
                     planning_tasks[task_id]["progress"] = 60
                     planning_tasks[task_id]["message"] = "开始多智能体协作..."
 
                     api_logger.info(f"任务 {task_id}: 执行旅行规划")
-                    # 在线程池中执行规划，避免阻塞
-                    import concurrent.futures
 
-                    def run_planning():
-                        """在线程池中实际执行多智能体规划，保持事件循环顺畅"""
-                        return travel_agents.run_travel_planning(langgraph_request)
+                    # 使用 run_in_executor 在线程池中执行，事件循环继续处理其他请求
+                    loop = asyncio.get_event_loop()
+                    try:
+                        result = await loop.run_in_executor(None, travel_agents.run_travel_planning, langgraph_request)
+                        api_logger.info(f"任务 {task_id}: LangGraph执行完成，结果: {result.get('success', False)}")
+                        return result
+                    except asyncio.TimeoutError:
+                        api_logger.warning(f"任务 {task_id}: LangGraph执行超时，尝试使用简化版本")
+                        planning_tasks[task_id]["progress"] = 80
+                        planning_tasks[task_id]["message"] = "LangGraph超时，使用简化版本..."
 
-                    # 使用线程池执行，设置超时
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                        future = executor.submit(run_planning)
-                        try:
-                            # 等待最多10分钟
-                            result = future.result(timeout=600)
-                            api_logger.info(f"任务 {task_id}: LangGraph执行完成，结果: {result.get('success', False)}")
-                            return result
-                        except concurrent.futures.TimeoutError:
-                            api_logger.warning(f"任务 {task_id}: LangGraph执行超时，尝试使用简化版本")
-                            planning_tasks[task_id]["progress"] = 80
-                            planning_tasks[task_id]["message"] = "LangGraph超时，使用简化版本..."
+                        # 使用简化版本作为备选方案
+                        simple_agent = SimpleTravelAgent()
+                        return await loop.run_in_executor(None, simple_agent.run_travel_planning, langgraph_request)
 
-                            # 使用简化版本作为备选方案
-                            simple_agent = SimpleTravelAgent()
-                            return simple_agent.run_travel_planning(langgraph_request)
+                    except Exception as e:
+                        api_logger.error(f"任务 {task_id}: LangGraph执行异常: {str(e)}，尝试使用简化版本")
+                        planning_tasks[task_id]["progress"] = 80
+                        planning_tasks[task_id]["message"] = "LangGraph异常，使用简化版本..."
 
-                        except Exception as e:
-                            api_logger.error(f"任务 {task_id}: LangGraph执行异常: {str(e)}，尝试使用简化版本")
-                            planning_tasks[task_id]["progress"] = 80
-                            planning_tasks[task_id]["message"] = "LangGraph异常，使用简化版本..."
-
-                            # 使用简化版本作为备选方案
-                            simple_agent = SimpleTravelAgent()
-                            return simple_agent.run_travel_planning(langgraph_request)
+                        # 使用简化版本作为备选方案
+                        simple_agent = SimpleTravelAgent()
+                        return await loop.run_in_executor(None, simple_agent.run_travel_planning, langgraph_request)
 
                 except Exception as e:
                     api_logger.error(f"任务 {task_id}: 初始化LangGraph失败: {str(e)}")
@@ -337,8 +336,8 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
                         "planning_complete": False
                     }
             
-            # 设置300秒超时（5分钟）
-            result = await asyncio.wait_for(run_langgraph(), timeout=300.0)
+            # 设置600秒超时（10分钟）
+            result = await asyncio.wait_for(run_langgraph(), timeout=600.0)
             
             api_logger.info(f"任务 {task_id}: LangGraph处理完成")
             

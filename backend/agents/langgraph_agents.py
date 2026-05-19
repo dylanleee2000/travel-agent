@@ -84,18 +84,63 @@ class LangGraphTravelAgents:
     多智能体系统，每个智能体都有专门的职责。
     """
 
-    def __init__(self):
+    # 智能体中文名映射，供进度回调使用
+    AGENT_NAMES_CN = {
+        'coordinator': '协调员',
+        'travel_advisor': '旅行顾问',
+        'weather_analyst': '天气分析师',
+        'budget_optimizer': '预算优化师',
+        'local_expert': '当地专家',
+        'itinerary_planner': '行程规划师',
+    }
+
+    # 专业智能体列表（coordinator 和 tools 不计入进度）
+    PROFESSIONAL_AGENTS = [
+        'travel_advisor',
+        'weather_analyst',
+        'budget_optimizer',
+        'local_expert',
+        'itinerary_planner',
+    ]
+
+    def __init__(self, progress_callback=None):
         """
         初始化LangGraph旅行智能体系统
 
-        配置 OpenAI 兼容大语言模型并创建智能体工作流图
+        参数：
+        - progress_callback: 进度回调函数，签名为 callback(agent_name: str, progress: int, message: str)
+          每个智能体执行完毕后会调用此回调，以便外部实时获取执行进度。
         """
         # 初始化 OpenAI 兼容大语言模型
         llm_config = config.get_llm_config()
         self.llm = ChatOpenAI(**llm_config)
 
+        # 进度回调（由调用方传入，如 api_server.py 用来更新前端进度条）
+        self.progress_callback = progress_callback
+
         # 初始化智能体工作流图
         self.graph = self._create_agent_graph()
+
+    def _notify_progress(self, agent_name: str) -> None:
+        """智能体执行完成后通知进度回调。"""
+        # 记录已完成的智能体（仅计算专业智能体，coordinator不计入）
+        if agent_name in self.PROFESSIONAL_AGENTS:
+            self._completed_agents.add(agent_name)
+
+        # 计算进度百分比：60-90 区间对应5个专业智能体逐步完成
+        completed_count = len(self._completed_agents)
+        progress = 60 + int((completed_count / self._total_agents) * 30)  # 60% -> 90%
+
+        agent_cn = self.AGENT_NAMES_CN.get(agent_name, agent_name)
+        message = f"{agent_cn}已完成 ({completed_count}/{self._total_agents})，继续协作中..."
+
+        agents_logger.info(f"[Progress] {agent_cn}已完成 | 进度: {progress}% | {message}")
+
+        if self.progress_callback:
+            try:
+                self.progress_callback(agent_name, progress, message)
+            except Exception as e:
+                agents_logger.warning(f"进度回调执行失败: {e}")
 
     def _create_agent_graph(self) -> StateGraph:
         """
@@ -144,8 +189,8 @@ class LangGraphTravelAgents:
             }
         )
 
-        # 每个智能体都可以使用工具或返回协调员
-        for agent in ["travel_advisor", "weather_analyst", "budget_optimizer", "local_expert", "itinerary_planner"]:
+        # 每个专业智能体都可以使用工具或返回协调员
+        for agent in self.PROFESSIONAL_AGENTS:
             workflow.add_conditional_edges(
                 agent,                        # 从各个智能体
                 self._agent_router,           # 使用智能体路由器决定下一步
@@ -220,6 +265,7 @@ class LangGraphTravelAgents:
         
         response = self.llm.invoke(messages)
         agents_logger.info(f"[CoordinatorAgent] 执行结果: {response.content[:200]}")
+        self._notify_progress("coordinator")
 
         # Update state
         new_state = state.copy()
@@ -267,6 +313,7 @@ class LangGraphTravelAgents:
         
         response = self.llm.invoke(messages)
         agents_logger.info(f"[TravelAdvisorAgent] 执行结果: {response.content[:200]}")
+        self._notify_progress("travel_advisor")
 
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
@@ -325,6 +372,7 @@ class LangGraphTravelAgents:
         
         response = self.llm.invoke(messages)
         agents_logger.info(f"[WeatherAnalystAgent] 执行结果: {response.content[:200]}")
+        self._notify_progress("weather_analyst")
 
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
@@ -379,6 +427,7 @@ class LangGraphTravelAgents:
         
         response = self.llm.invoke(messages)
         agents_logger.info(f"[BudgetOptimizerAgent] 执行结果: {response.content[:200]}")
+        self._notify_progress("budget_optimizer")
 
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
@@ -432,6 +481,7 @@ class LangGraphTravelAgents:
         
         response = self.llm.invoke(messages)
         agents_logger.info(f"[LocalExpertAgent] 执行结果: {response.content[:200]}")
+        self._notify_progress("local_expert")
 
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
@@ -486,6 +536,7 @@ class LangGraphTravelAgents:
         
         response = self.llm.invoke(messages)
         agents_logger.info(f"[ItineraryPlannerAgent] 执行结果: {response.content[:200]}")
+        self._notify_progress("itinerary_planner")
 
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
@@ -726,6 +777,10 @@ class LangGraphTravelAgents:
         这个方法展示了如何将复杂的AI系统封装成简单的API，
         用户只需提供需求，系统就能自动协调多个智能体完成规划。
         """
+
+        # 记录已完成的智能体，用于计算进度
+        self._completed_agents = set()
+        self._total_agents = len(self.PROFESSIONAL_AGENTS)  # 自动从 PROFESSIONAL_AGENTS 获取总数
 
         # 初始化系统状态
         initial_state = TravelPlanState(
