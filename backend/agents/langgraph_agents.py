@@ -219,7 +219,8 @@ class LangGraphTravelAgents:
             messages.extend(state["messages"][-3:])  # Keep recent context
         
         response = self.llm.invoke(messages)
-        
+        agents_logger.info(f"[CoordinatorAgent] 执行结果: {response.content[:200]}")
+
         # Update state
         new_state = state.copy()
         new_state["messages"] = state.get("messages", []) + [response]
@@ -265,7 +266,8 @@ class LangGraphTravelAgents:
             messages.extend(state["messages"][-2:])
         
         response = self.llm.invoke(messages)
-        
+        agents_logger.info(f"[TravelAdvisorAgent] 执行结果: {response.content[:200]}")
+
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
         agent_outputs["travel_advisor"] = {
@@ -322,7 +324,8 @@ class LangGraphTravelAgents:
             messages.extend(state["messages"][-2:])
         
         response = self.llm.invoke(messages)
-        
+        agents_logger.info(f"[WeatherAnalystAgent] 执行结果: {response.content[:200]}")
+
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
         agent_outputs["weather_analyst"] = {
@@ -375,7 +378,8 @@ class LangGraphTravelAgents:
             messages.extend(state["messages"][-2:])
         
         response = self.llm.invoke(messages)
-        
+        agents_logger.info(f"[BudgetOptimizerAgent] 执行结果: {response.content[:200]}")
+
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
         agent_outputs["budget_optimizer"] = {
@@ -427,7 +431,8 @@ class LangGraphTravelAgents:
             messages.extend(state["messages"][-2:])
         
         response = self.llm.invoke(messages)
-        
+        agents_logger.info(f"[LocalExpertAgent] 执行结果: {response.content[:200]}")
+
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
         agent_outputs["local_expert"] = {
@@ -480,7 +485,8 @@ class LangGraphTravelAgents:
             messages.extend(state["messages"][-2:])
         
         response = self.llm.invoke(messages)
-        
+        agents_logger.info(f"[ItineraryPlannerAgent] 执行结果: {response.content[:200]}")
+
         # Store agent output
         agent_outputs = state.get("agent_outputs", {})
         agent_outputs["itinerary_planner"] = {
