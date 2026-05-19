@@ -202,5 +202,3 @@ MIT License
 
 
 **注意**: 本系统需要稳定的网络连接和有效的API密钥才能正常工作。首次使用请确保完成所有配置步骤。
-
-该项目改造自 https://github.com/FlyAIBox/Agent_In_Action/tree/main/03-agent-build-docker-deploy
