@@ -305,8 +305,8 @@ async def run_planning_task(task_id: str, travel_request: Dict[str, Any]):
                     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                         future = executor.submit(run_planning)
                         try:
-                            # 等待最多4分钟
-                            result = future.result(timeout=240)
+                            # 等待最多10分钟
+                            result = future.result(timeout=600)
                             api_logger.info(f"任务 {task_id}: LangGraph执行完成，结果: {result.get('success', False)}")
                             return result
                         except concurrent.futures.TimeoutError:
