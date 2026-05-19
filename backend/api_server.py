@@ -31,7 +31,7 @@ import uvicorn
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from agents.langgraph_agents import LangGraphTravelAgents
-from agents.simple_travel_agent import SimpleTravelAgent, MockTravelAgent
+from agents.simple_travel_agent import SimpleTravelAgent
 from config.langgraph_config import langgraph_config as config
 from utils.helpers import get_logger, setup_uvicorn_logging
 
@@ -675,44 +675,7 @@ async def simple_travel_plan(request: TravelRequest, background_tasks: Backgroun
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"创建简化规划任务失败: {str(e)}")
 
-@app.post("/mock-plan")
-async def mock_travel_plan(request: TravelRequest):
-    """
-    模拟旅行规划（用于测试，立即返回结果）
 
-    调用 `MockTravelAgent`，快速返回预设的示例行程，主要用于调试前端调用链或演示流程，
-    不依赖外部 API，也不会写入持久化任务状态。
-    """
-    try:
-        # 生成测试任务ID
-        task_id = str(uuid.uuid4())
-        api_logger.info(f"模拟任务 {task_id}: 开始")
-
-        # 计算旅行天数
-        from datetime import datetime
-        start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
-        end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
-        duration = (end_date - start_date).days + 1
-
-        # 转换请求为字典
-        travel_request = request.model_dump()
-        travel_request["duration"] = duration
-
-        # 使用模拟智能体
-        mock_agent = MockTravelAgent()
-        result = mock_agent.run_travel_planning(travel_request)
-
-        api_logger.info(f"模拟任务 {task_id}: 完成")
-
-        return {
-            "task_id": task_id,
-            "status": "completed",
-            "message": "模拟规划完成",
-            "result": result
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"模拟规划失败: {str(e)}")
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(request: ChatRequest, background_tasks: BackgroundTasks):
