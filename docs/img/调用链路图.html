@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>"开始规划" 完整调用链路流程图 — 马小跳旅行规划系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .legend-dot {
+      width: 14px; height: 14px; border-radius: 3px;
+    }
+    .legend-dot.frontend { background: #3b82f6; }
+    .legend-dot.api { background: #8b5cf6; }
+    .legend-dot.agent { background: #f59e0b; }
+    .legend-dot.tool { background: #10b981; }
+    .legend-dot.fallback { background: #ef4444; }
+    .legend-dot.start { background: #22d3ee; border-radius: 50%; }
+
+    .chart-container {
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    /* Swimlane styling */
+    .swimlane {
+      position: relative;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      margin-bottom: 0;
+      padding: 0;
+    }
+    .swimlane-header {
+      position: sticky;
+      left: 0;
+      padding: 10px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 2px solid;
+    }
+    .swimlane.frontend .swimlane-header {
+      background: rgba(59,130,246,0.15);
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+    .swimlane.api .swimlane-header {
+      background: rgba(139,92,246,0.15);
+      border-color: #8b5cf6;
+      color: #a78bfa;
+    }
+    .swimlane.agent .swimlane-header {
+      background: rgba(245,158,11,0.15);
+      border-color: #f59e0b;
+      color: #fbbf24;
+    }
+    .swimlane.tool .swimlane-header {
+      background: rgba(16,185,129,0.15);
+      border-color: #10b981;
+      color: #34d399;
+    }
+
+    .swimlane-body {
+      padding: 16px 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    /* Node base */
+    .node {
+      position: relative;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      min-width: 160px;
+      max-width: 240px;
+      cursor: default;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border: 1px solid transparent;
+    }
+    .node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+    .node .title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .node .file {
+      font-size: 11px;
+      opacity: 0.7;
+      font-family: "SF Mono", "Fira Code", monospace;
+    }
+    .node .desc {
+      font-size: 12px;
+      margin-top: 4px;
+      opacity: 0.85;
+    }
+
+    /* Node types */
+    .node.start {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: #fff;
+      border-radius: 24px;
+      text-align: center;
+    }
+    .node.frontend-node {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: #fff;
+    }
+    .node.api-node {
+      background: linear-gradient(135deg, #5b21b6, #8b5cf6);
+      color: #fff;
+    }
+    .node.agent-node {
+      background: linear-gradient(135deg, #b45309, #f59e0b);
+      color: #fff;
+    }
+    .node.tool-node {
+      background: linear-gradient(135deg, #047857, #10b981);
+      color: #fff;
+    }
+    .node.fallback-node {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+      color: #fff;
+    }
+    .node.decision-node {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      color: #fff;
+      border-radius: 4px;
+      transform: rotate(0deg);
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      width: 140px; height: 140px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    /* Connector lines */
+    svg.connectors {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Flow visualization using flex column */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      position: relative;
+    }
+    .flow-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .arrow-down {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 0;
+    }
+    .arrow-down .line {
+      width: 2px;
+      height: 24px;
+      background: #64748b;
+    }
+    .arrow-down .label {
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 2px 8px;
+      background: #1e293b;
+      border-radius: 4px;
+      border: 1px solid #334155;
+      margin-bottom: 2px;
+    }
+    .arrow-down svg {
+      width: 12px; height: 8px;
+    }
+    .arrow-down svg polygon {
+      fill: #64748b;
+    }
+
+    .section-gap {
+      height: 20px;
+    }
+
+    /* Phase label */
+    .phase-label {
+      width: 100%;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      padding: 8px 0 4px 0;
+      letter-spacing: 0.5px;
+    }
+    .phase-label span {
+      background: #1e293b;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border-left: 3px solid;
+    }
+
+    /* Side-by-side layout */
+    .side-by-side {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      justify-content: center;
+    }
+    .side-by-side > div {
+      flex: 1;
+      max-width: 480px;
+    }
+
+    /* Polling box */
+    .poll-box {
+      border: 2px dashed #64748b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 100%;
+      text-align: center;
+    }
+    .poll-box .poll-title {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* Background task box */
+    .bg-box {
+      border: 2px dashed #f59e0b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 100%;
+      text-align: center;
+    }
+    .bg-box .bg-title {
+      font-size: 12px;
+      color: #fbbf24;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* LangGraph subgraph */
+    .subgraph {
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 100%;
+      background: rgba(245,158,11,0.05);
+    }
+    .subgraph-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fbbf24;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .agent-cycle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .agent-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .cycle-label {
+      font-size: 11px;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    /* Tool grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .flow-row { flex-direction: column; align-items: center; }
+      .side-by-side { flex-direction: column; align-items: center; }
+      .tool-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Tooltip */
+    .node[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 100;
+      border: 1px solid #475569;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+
+    /* Summary table */
+    .summary {
+      margin-top: 30px;
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #334155;
+    }
+    .summary h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #f1f5f9;
+    }
+    .summary table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .summary th {
+      text-align: left;
+      padding: 8px 12px;
+      background: #0f172a;
+      color: #94a3b8;
+      font-weight: 600;
+      border-bottom: 1px solid #334155;
+    }
+    .summary td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .summary tr:hover td {
+      background: rgba(59,130,246,0.05);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.get { background: #065f46; color: #34d399; }
+    .badge.post { background: #7c2d12; color: #fb923c; }
+
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+
+<h1>"开始规划" 完整调用链路流程图</h1>
+<p class="subtitle">马小跳 AI 旅行规划多智能体系统 — 从前端点击到后端多Agent协作的全链路</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot start"></div>起点/终点</div>
+  <div class="legend-item"><div class="legend-dot frontend"></div>前端 Streamlit</div>
+  <div class="legend-item"><div class="legend-dot api"></div>后端 FastAPI</div>
+  <div class="legend-item"><div class="legend-dot agent"></div>LangGraph Agent</div>
+  <div class="legend-item"><div class="legend-dot tool"></div>工具 / 外部API</div>
+  <div class="legend-item"><div class="legend-dot fallback"></div>降级兜底</div>
+</div>
+
+<div class="chart-container">
+<div class="flow">
+
+<!-- ==================== PHASE 1: 用户交互 ==================== -->
+<div class="phase-label"><span style="border-color: #3b82f6;">阶段一：用户交互 &amp; 参数收集</span></div>
+
+<div class="swimlane frontend">
+  <div class="swimlane-header">前端 Streamlit — streamlit_app.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px;">
+      <div class="node start">
+        <div class="title">用户点击按钮</div>
+        <div class="desc">st.button("开始规划")</div>
+        <div class="file">L1516</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">校验参数</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="node frontend-node" data-tip="检查 destination 非空 & start_date < end_date">
+        <div class="title">参数校验</div>
+        <div class="desc">目的地非空、日期合法</div>
+        <div class="file">L1517-1520</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">构建 payload</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="node frontend-node" data-tip="destination, dates, group_size, budget, interests, accommodation, transport, currency">
+        <div class="title">组装 travel_data</div>
+        <div class="desc">构建请求参数字典</div>
+        <div class="file">L1522-1532</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">写入 session_state + st.rerun()</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="node frontend-node" data-tip="Streamlit 页面重新执行，进入第二轮渲染">
+        <div class="title">触发页面重载</div>
+        <div class="desc">st.session_state + st.rerun()</div>
+        <div class="file">L1534-1536</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 2: HTTP 请求 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #8b5cf6;">阶段二：前端 → 后端 HTTP 调用</span></div>
+
+<div class="side-by-side">
+  <div class="swimlane frontend">
+    <div class="swimlane-header">前端发起请求</div>
+    <div class="swimlane-body">
+      <div class="flow" style="gap: 6px;">
+        <div class="node frontend-node" data-tip="重新渲染后检测到 planning_started=True 且无 task_id">
+          <div class="title">渲染请求卡片</div>
+          <div class="desc">显示用户输入摘要 HTML</div>
+          <div class="file">L1617-1656</div>
+        </div>
+
+        <div class="arrow-down">
+          <div class="label">调用函数</div>
+          <div class="line"></div>
+          <svg><polygon points="6,0 12,8 0,8"/></svg>
+        </div>
+
+        <div class="node frontend-node" data-tip="POST http://API_BASE_URL/plan — 60s 超时">
+          <div class="title">create_travel_plan()</div>
+          <div class="desc">POST /plan (60s timeout)</div>
+          <div class="file">L967-984</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="swimlane api">
+    <div class="swimlane-header">后端接收请求</div>
+    <div class="swimlane-body">
+      <div class="flow" style="gap: 6px;">
+        <div class="node api-node" data-tip="CORSMiddleware — 允许所有来源、方法、头部">
+          <div class="title">CORS 中间件</div>
+          <div class="desc">跨域拦截处理</div>
+          <div class="file">api_server.py L51-57</div>
+        </div>
+
+        <div class="arrow-down">
+          <div class="label">Pydantic 反序列化</div>
+          <div class="line"></div>
+          <svg><polygon points="6,0 12,8 0,8"/></svg>
+        </div>
+
+        <div class="node api-node" data-tip="TravelRequest Pydantic 模型自动验证所有字段">
+          <div class="title">TravelRequest 校验</div>
+          <div class="desc">Pydantic 模型自动验证</div>
+          <div class="file">api_server.py L92-132</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 3: API 处理 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #8b5cf6;">阶段三：后端 API 处理 — 创建任务 &amp; 异步调度</span></div>
+
+<div class="swimlane api">
+  <div class="swimlane-header">FastAPI — POST /plan → create_travel_plan() — api_server.py L468-526</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px; width: 100%;">
+      <div class="flow-row">
+        <div class="node api-node" data-tip="uuid.uuid4() 生成唯一任务标识">
+          <div class="title">生成 task_id</div>
+          <div class="desc">uuid4 唯一标识</div>
+          <div class="file">L483</div>
+        </div>
+        <div class="node api-node" data-tip="解析 start_date 和 end_date，计算天数">
+          <div class="title">计算行程天数</div>
+          <div class="desc">(end - start).days + 1</div>
+          <div class="file">L486-489</div>
+        </div>
+        <div class="node api-node" data-tip="全局字典 planning_tasks[task_id] = {...}">
+          <div class="title">初始化任务状态</div>
+          <div class="desc">status=started, progress=0</div>
+          <div class="file">L496-505</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">持久化 + 调度后台任务</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="flow-row">
+        <div class="node api-node" data-tip="将任务状态写入 tasks_state.json 文件">
+          <div class="title">save_tasks_state()</div>
+          <div class="desc">持久化到 JSON 文件</div>
+          <div class="file">L508</div>
+        </div>
+        <div class="node api-node" data-tip="FastAPI BackgroundTasks — 异步执行，不阻塞响应" style="border: 2px solid #fbbf24;">
+          <div class="title">调度后台任务 ★</div>
+          <div class="desc">background_tasks.add_task(run_planning_task)</div>
+          <div class="file">L517</div>
+        </div>
+        <div class="node api-node" data-tip="立即返回 task_id，不等待规划完成">
+          <div class="title">返回 PlanningResponse</div>
+          <div class="desc">HTTP 200 → {task_id, status}</div>
+          <div class="file">L519-523</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 3.5: 前端轮询 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #3b82f6;">阶段三·五：前端轮询任务状态</span></div>
+
+<div class="side-by-side">
+  <div class="swimlane frontend">
+    <div class="swimlane-header">前端轮询循环</div>
+    <div class="swimlane-body">
+      <div class="poll-box" style="width: 100%;">
+        <div class="poll-title">每 5 秒轮询一次，最多 60 次（5分钟）</div>
+        <div class="flow" style="gap: 6px;">
+          <div class="node frontend-node" data-tip="GET /status/{task_id} — 带 3 次重试机制">
+            <div class="title">get_planning_status()</div>
+            <div class="desc">GET /status/{task_id}</div>
+            <div class="file">L986-1017</div>
+          </div>
+          <div class="cycle-label">↑ 重复直到 status=completed 或超时</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="swimlane api">
+    <div class="swimlane-header">后端状态查询</div>
+    <div class="swimlane-body">
+      <div class="flow" style="gap: 6px;">
+        <div class="node api-node" data-tip="从内存字典 planning_tasks 查找，找不到返回 404">
+          <div class="title">GET /status/{task_id}</div>
+          <div class="desc">返回 status, progress, current_agent, result</div>
+          <div class="file">api_server.py L528-558</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 4: 后台执行 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #f59e0b;">阶段四：后台异步执行 — AI 多智能体规划（核心）</span></div>
+
+<div class="swimlane api">
+  <div class="swimlane-header">后台任务 — run_planning_task() — api_server.py L235-432</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px; width: 100%;">
+      <div class="node api-node" data-tip="更新状态为 processing，进度设为 10%">
+        <div class="title">更新进度 → processing</div>
+        <div class="desc">status=processing, progress=10</div>
+        <div class="file">L251-253</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">构建 LangGraph 请求</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="node api-node" data-tip="将前端参数转换为 LangGraph 所需格式">
+        <div class="title">构建 langgraph_request</div>
+        <div class="desc">destination, duration, budget_range, interests...</div>
+        <div class="file">L264-271</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">asyncio.wait_for (300s 总超时)</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="flow-row">
+        <div class="node api-node" data-tip="ThreadPoolExecutor, 240s 线程级超时">
+          <div class="title">run_langgraph()</div>
+          <div class="desc">线程池执行 LangGraph<br/>240s 线程超时</div>
+          <div class="file">L282-338</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 5: LangGraph ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #f59e0b;">阶段五：LangGraph 多智能体状态图</span></div>
+
+<div class="swimlane agent">
+  <div class="swimlane-header">LangGraph 多智能体系统 — langgraph_agents.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 10px; width: 100%;">
+
+      <!-- Init -->
+      <div class="flow-row">
+        <div class="node agent-node" data-tip="ChatOpenAI 兼容接口，加载 LLM 配置">
+          <div class="title">初始化 LLM</div>
+          <div class="desc">ChatOpenAI(model, base_url)</div>
+          <div class="file">L87-90</div>
+        </div>
+        <div class="node agent-node" data-tip="创建 StateGraph(TravelPlanState)，添加 7 个节点和条件边">
+          <div class="title">编译状态图</div>
+          <div class="desc">_create_agent_graph() → StateGraph</div>
+          <div class="file">L100-163</div>
+        </div>
+        <div class="node agent-node" data-tip="构建初始 TravelPlanState，调用 graph.invoke()">
+          <div class="title">启动图执行</div>
+          <div class="desc">graph.invoke(initial_state)</div>
+          <div class="file">L707-765</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">图执行开始</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <!-- Coordinator entry -->
+      <div class="node agent-node" style="max-width: 500px; border: 2px solid #fbbf24;" data-tip="入口节点：LLM 决定下一步调用哪个 Agent，或输出 FINAL_PLAN 结束循环">
+        <div class="title">★ 协调者 Coordinator（入口）</div>
+        <div class="desc">LLM 分析任务 → 决策路由到哪个专业 Agent<br/>输出 FINAL_PLAN 时结束循环</div>
+        <div class="file">_coordinator_agent() L165-229</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">_coordinator_router() 解析 LLM 输出 → L608-672</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <!-- Subgraph for agents -->
+      <div class="subgraph">
+        <div class="subgraph-title">五个专业 Agent（循环调用，由 Coordinator 调度）</div>
+        <div class="agent-row">
+          <div class="node agent-node" data-tip="目的地攻略、景点推荐、文化贴士">
+            <div class="title">旅行顾问</div>
+            <div class="desc">travel_advisor<br/>景点 & 文化</div>
+            <div class="file">L231-282</div>
+          </div>
+          <div class="node agent-node" data-tip="天气分析，强制触发 NEED_SEARCH 获取实时天气">
+            <div class="title">天气分析师</div>
+            <div class="desc">weather_analyst<br/>天气预报分析</div>
+            <div class="file">L284-339</div>
+          </div>
+          <div class="node agent-node" data-tip="成本分析、预算优化建议">
+            <div class="title">预算优化师</div>
+            <div class="desc">budget_optimizer<br/>费用 & 省钱</div>
+            <div class="file">L341-392</div>
+          </div>
+          <div class="node agent-node" data-tip="当地隐藏景点、风俗习惯、内行建议">
+            <div class="title">本地通</div>
+            <div class="desc">local_expert<br/>小众推荐</div>
+            <div class="file">L394-444</div>
+          </div>
+          <div class="node agent-node" data-tip="逐日行程安排、时间规划、交通衔接">
+            <div class="title">行程规划师</div>
+            <div class="desc">itinerary_planner<br/>日程 & 交通</div>
+            <div class="file">L446-497</div>
+          </div>
+        </div>
+        <div style="margin-top: 10px;">
+          <div class="cycle-label">每个 Agent 完成后 → _agent_router() 判断：含 NEED_SEARCH → tools 节点；否则 → 回到 Coordinator</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">NEED_SEARCH → 路由到工具节点</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 6: Tools ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #10b981;">阶段六：工具执行 — 搜索 &amp; 数据获取</span></div>
+
+<div class="swimlane tool">
+  <div class="swimlane-header">工具执行器 — _tool_executor_node() — langgraph_agents.py L499-606 &amp; travel_tools.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 10px; width: 100%;">
+      <div class="node tool-node" style="max-width: 400px;" data-tip="根据当前 Agent 和关键词选择合适的工具，执行搜索，结果写回状态">
+        <div class="title">_tool_executor_node()</div>
+        <div class="desc">解析 NEED_SEARCH → 匹配关键词 → 选择工具 → 执行 → 返回 AIMessage</div>
+        <div class="file">L499-606</div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">七个搜索工具（DuckDuckGo）</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="tool-grid">
+        <div class="node tool-node" data-tip="搜索目的地综合信息">
+          <div class="title">search_destination_info</div>
+          <div class="desc">目的地综合信息</div>
+          <div class="file">L35-99</div>
+        </div>
+        <div class="node tool-node" data-tip="优先 MCP 和风天气，失败降级 DuckDuckGo">
+          <div class="title">search_weather_info</div>
+          <div class="desc">天气查询（MCP优先）</div>
+          <div class="file">L102-187</div>
+        </div>
+        <div class="node tool-node" data-tip="搜索景点和活动推荐">
+          <div class="title">search_attractions</div>
+          <div class="desc">景点 & 活动</div>
+          <div class="file">L190-243</div>
+        </div>
+        <div class="node tool-node" data-tip="搜索住宿推荐">
+          <div class="title">search_hotels</div>
+          <div class="desc">酒店住宿推荐</div>
+          <div class="file">L246-299</div>
+        </div>
+        <div class="node tool-node" data-tip="搜索餐厅美食">
+          <div class="title">search_restaurants</div>
+          <div class="desc">餐厅 & 美食</div>
+          <div class="file">L302-355</div>
+        </div>
+        <div class="node tool-node" data-tip="搜索当地文化和旅行贴士">
+          <div class="title">search_local_tips</div>
+          <div class="desc">当地文化贴士</div>
+          <div class="file">L358-410</div>
+        </div>
+        <div class="node tool-node" data-tip="搜索预算和费用信息">
+          <div class="title">search_budget_info</div>
+          <div class="desc">预算 & 费用</div>
+          <div class="file">L413-466</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="label">工具执行完成 → 回到 Coordinator</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+
+      <div class="cycle-label">↑ Coordinator 再次决策：继续调用其他 Agent 或输出 FINAL_PLAN 结束</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MCP 天气子链 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #10b981;">子链：MCP 天气查询（search_weather_info 内部调用）</span></div>
+
+<div class="swimlane tool">
+  <div class="swimlane-header">MCP 天气协议链 — weather_client_mcp.py → weather_server_mcp.py → 和风天气 API</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px;">
+      <div class="flow-row">
+        <div class="node tool-node" data-tip="创建 MCP 客户端，连接本地 MCP Server">
+          <div class="title">fetch_forecast_via_mcp()</div>
+          <div class="desc">MCP 客户端发起调用</div>
+          <div class="file">weather_client_mcp.py L292-326</div>
+        </div>
+      </div>
+      <div class="arrow-down">
+        <div class="label">MCP tool_call</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+      <div class="flow-row">
+        <div class="node tool-node" data-tip="FastMCP 服务端，处理天气预报请求">
+          <div class="title">get_daily_forecast()</div>
+          <div class="desc">MCP Server 处理</div>
+          <div class="file">weather_server_mcp.py L263-344</div>
+        </div>
+      </div>
+      <div class="arrow-down">
+        <div class="label">HTTP + API Key</div>
+        <div class="line"></div>
+        <svg><polygon points="6,0 12,8 0,8"/></svg>
+      </div>
+      <div class="flow-row">
+        <div class="node tool-node" data-tip="和风天气 API v7/weather/{days}d — X-QW-Api-Key 认证">
+          <div class="title">和风天气 API</div>
+          <div class="desc">v7/weather/{days}d</div>
+          <div class="file">weather_server_mcp.py L92-133</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 7: 结果汇总 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #f59e0b;">阶段七：结果汇总 &amp; 持久化</span></div>
+
+<div class="swimlane agent">
+  <div class="swimlane-header">结果编译 — langgraph_agents.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px;">
+      <div class="node agent-node" data-tip="汇总所有 Agent 输出：目的地分析、天气、预算、行程、贴士...">
+        <div class="title">_compile_final_plan()</div>
+        <div class="desc">聚合所有 Agent 输出 → 最终方案</div>
+        <div class="file">L745</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 10px;"></div>
+
+<div class="swimlane api">
+  <div class="swimlane-header">结果持久化 — api_server.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px;">
+      <div class="flow-row">
+        <div class="node api-node" data-tip="status=completed, progress=100">
+          <div class="title">更新任务状态</div>
+          <div class="desc">status=completed, progress=100</div>
+          <div class="file">L346-355</div>
+        </div>
+        <div class="node api-node" data-tip="写入 tasks_state.json">
+          <div class="title">save_tasks_state()</div>
+          <div class="desc">状态持久化</div>
+        </div>
+        <div class="node api-node" data-tip="写入 results/{task_id}.json">
+          <div class="title">save_planning_result()</div>
+          <div class="desc">结果保存为文件</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 降级兜底 ==================== -->
+<div class="section-gap"></div>
+<div class="phase-label"><span style="border-color: #ef4444;">降级兜底路径（LangGraph 超时/失败时触发）</span></div>
+
+<div class="swimlane api" style="border-color: #ef4444;">
+  <div class="swimlane-header" style="background: rgba(239,68,68,0.15); border-color: #ef4444; color: #f87171;">降级策略 — api_server.py L317-425 &amp; simple_travel_agent.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px; width: 100%;">
+      <div class="flow-row">
+        <div class="node fallback-node" data-tip="LangGraph 线程池 240s 超时或异常时触发">
+          <div class="title">Level 1: SimpleTravelAgent</div>
+          <div class="desc">单 Agent + 单次 LLM 调用<br/>简化版规划</div>
+          <div class="file">simple_travel_agent.py L30-95</div>
+        </div>
+        <div class="node fallback-node" data-tip="总超时 300s 或完全失败时触发">
+          <div class="title">Level 2: 硬编码兜底</div>
+          <div class="desc">返回预设的简化方案<br/>保证用户总能得到结果</div>
+          <div class="file">api_server.py L361-425</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 最终结果 ==================== -->
+<div class="section-gap"></div>
+
+<div class="arrow-down">
+  <div class="label">前端轮询检测到 status=completed</div>
+  <div class="line"></div>
+  <svg><polygon points="6,0 12,8 0,8"/></svg>
+</div>
+
+<div class="swimlane frontend">
+  <div class="swimlane-header">前端展示结果 — streamlit_app.py</div>
+  <div class="swimlane-body">
+    <div class="flow" style="gap: 6px;">
+      <div class="node frontend-node" data-tip="解析 result JSON，按模块渲染行程方案">
+        <div class="title">渲染规划结果</div>
+        <div class="desc">展示完整旅行方案、行程、预算...</div>
+        <div class="file">L1675-1768</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-down">
+  <svg><polygon points="6,0 12,8 0,8"/></svg>
+</div>
+
+<div class="node start" style="background: linear-gradient(135deg, #059669, #10b981);">
+  <div class="title">用户获得完整旅行方案</div>
+  <div class="desc">行程、天气、预算、贴士一应俱全</div>
+</div>
+
+</div><!-- end flow -->
+</div><!-- end chart-container -->
+
+<!-- Summary table -->
+<div class="summary">
+  <h2>关键文件速查表</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>层级</th>
+        <th>文件</th>
+        <th>职责</th>
+        <th>关键函数</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge post" style="background:#1e40af;color:#93c5fd;">前端</span></td>
+        <td><code>frontend/streamlit_app.py</code></td>
+        <td>用户界面、参数收集、轮询、结果展示</td>
+        <td>按钮L1516 / create_travel_plan() L967 / get_planning_status() L986</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#5b21b6;color:#c4b5fd;">API</span></td>
+        <td><code>backend/api_server.py</code></td>
+        <td>REST API、任务管理、异步调度</td>
+        <td>POST /plan L468 / GET /status L528 / run_planning_task() L235</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#b45309;color:#fde68a;">Agent</span></td>
+        <td><code>backend/agents/langgraph_agents.py</code></td>
+        <td>LangGraph 多智能体编排</td>
+        <td>run_travel_planning() L707 / _coordinator_agent() L165</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#047857;color:#a7f3d0;">工具</span></td>
+        <td><code>backend/tools/travel_tools.py</code></td>
+        <td>LangChain 工具（DuckDuckGo 搜索）</td>
+        <td>search_weather_info L102 / search_attractions L190 等 7 个</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#047857;color:#a7f3d0;">天气</span></td>
+        <td><code>backend/tools/weather_client_mcp.py</code></td>
+        <td>MCP 天气客户端</td>
+        <td>fetch_forecast_via_mcp() L292</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#047857;color:#a7f3d0;">天气</span></td>
+        <td><code>backend/tools/weather_server_mcp.py</code></td>
+        <td>MCP 天气服务端（和风天气 API）</td>
+        <td>get_daily_forecast() L263</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#b91c1c;color:#fecaca;">降级</span></td>
+        <td><code>backend/agents/simple_travel_agent.py</code></td>
+        <td>降级单 Agent（超时兜底）</td>
+        <td>run_travel_planning() L30</td>
+      </tr>
+      <tr>
+        <td><span class="badge post" style="background:#374151;color:#d1d5db;">配置</span></td>
+        <td><code>backend/config/langgraph_config.py</code></td>
+        <td>LLM、搜索、Agent 参数配置</td>
+        <td>get_llm_config() / get_search_config()</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="footer">马小跳 AI 旅行规划系统 · 自动生成的调用链路流程图 · 供新手学习参考</p>
+
+</body>
+</html>
